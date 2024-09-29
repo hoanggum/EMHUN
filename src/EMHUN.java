@@ -3,17 +3,22 @@ import java.io.*;
 public class EMHUN {
     private List<Transaction> transactions;
     private int minU;
-    Set<Integer> rho = new HashSet<>();
-    Set<Integer> delta = new HashSet<>();
-    Set<Integer> eta = new HashSet<>();
-
-    Set<Integer> X = new HashSet<>();
+    private Set<Integer> rho = new HashSet<>();
+    private Set<Integer> delta = new HashSet<>();
+    private Set<Integer> eta = new HashSet<>();
+    private Set<Integer> secondaryItems = new HashSet<>();
+    private List<Integer> sortedSecondary = new ArrayList<>();
+    private List<Integer> sortedEta;
+    private List<Integer> X = new ArrayList<>();
+    public  UtilityArray utilityArray;
+    private List<Integer> primaryItems = new ArrayList<>();
+    private SearchAlgorithms searchAlgorithms = new SearchAlgorithms(utilityArray);;
     public EMHUN(List<Transaction> transactions, int minU) {
         this.transactions = transactions;
         this.minU = minU;
     }
     public void EMHUN() {
-        UtilityArray utilityArray = new UtilityArray(transactions.size());
+        utilityArray = new UtilityArray(transactions.size()+1);
         System.out.println("\nCalculating Transaction Utility for each transaction:");
         UtilityCalculation.calculateAndPrintAllTransactionUtilities(transactions);
 
@@ -31,28 +36,38 @@ public class EMHUN {
         Set<Integer> combinedSet = new HashSet<>(this.rho);
         combinedSet.addAll(this.delta);
 
-        Set<Integer> secondaryItems = getSecondaryItems(combinedSet, utilityArray, this.minU);
+        secondaryItems = getSecondaryItems(combinedSet, utilityArray, this.minU);
 
         System.out.println("\nFinal set of Secondary items: " + secondaryItems);
-
+        System.out.println("\n---------------------------------");
         System.out.println("\nSorted order of items based on Definition 7: ");
-        List<Integer> sortedSecondary = sortItems(secondaryItems, utilityArray);
+        sortedSecondary = sortItems(secondaryItems, utilityArray);
         System.out.println("Sorted Secondary(X): " + sortedSecondary);
-
-        List<Integer> sortedEta = sortItems(this.eta, utilityArray);
+        System.out.println("\n---------------------------------");
+        sortedEta = sortItems(this.eta, utilityArray);
         System.out.println("Sorted η: " + sortedEta);
-
+        System.out.println("\n---------------------------------");
         filterTransactions(transactions, secondaryItems, eta);
         System.out.println("\nTransactions after filtering:");
         printTransactions(transactions);
-
+        System.out.println("\n---------------------------------");
         sortItemsInTransactions(transactions, utilityArray);
         System.out.println("\nTransactions after sorting item:");
         printTransactions(transactions);
+        System.out.println("\n---------------------------------");
         System.out.println("\nTransactions after sorting strans:");
         sortTransactions();
         printTransactions(transactions);
+        System.out.println("\n---------------------------------");
+        System.out.println("Calculating RSU for each item in Secondary(X)...");
+        UtilityCalculation.calculateRSUForAllItems(transactions, sortedSecondary, utilityArray);
+        System.out.println("\n---------------------------------");
 
+        identifyPrimaryItems();
+        System.out.println("\n---------------------------------");
+        System.out.println("\nStarting HUI Search...");
+        searchAlgorithms.search(sortedEta, new HashSet<>(X), transactions, primaryItems, sortedSecondary, minU);
+        utilityArray.printUtilityArray();
     }
     public void classifyItems(List<Transaction> database) {
         Map<Integer, Boolean> hasPositive = new HashMap<>();
@@ -198,7 +213,7 @@ public class EMHUN {
         for (Transaction transaction : transactions) {
             System.out.print("\nItems: " + transaction.items + " : ");
             System.out.print("Utilities: " + transaction.utilities);
-            System.out.println("\n----------");
+            System.out.println("\n---------------------------------");
         }
     }
     public void sortTransactions() {
@@ -233,6 +248,14 @@ public class EMHUN {
     }
 
 
+    private void identifyPrimaryItems() {
+        for (Integer item : sortedSecondary) {
+            if (utilityArray.getRSU(item) >= minU) {
+                primaryItems.add(item);
+            }
+        }
+        System.out.println("Primary(X): " + primaryItems);
+    }
 
 
 

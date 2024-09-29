@@ -29,7 +29,7 @@ public class UtilityCalculation {
                 if (transaction.items.contains(item)) {
                     System.out.println("  Found item " + item + " in transaction: " + transaction.items);
 
-                    int rlu = calculateRemainingRemainingUtility(transaction, item);  // Gọi hàm tính RLU
+                    int rlu = calculateRemainingResiduaUtility(transaction, item);  // Gọi hàm tính RLU
                     totalRLU += rlu;
 
                     System.out.println("  RLU for this transaction: " + rlu + " (cumulative RLU: " + totalRLU + ")");
@@ -41,7 +41,7 @@ public class UtilityCalculation {
         }
     }
 
-    public static int calculateRemainingRemainingUtility(Transaction transaction, int currentItem) {
+    public static int calculateRemainingResiduaUtility(Transaction transaction, int currentItem) {
         boolean foundCurrentItem = false;
         int rru = 0;
         System.out.print("    Remaining items after " + currentItem + ": ");
@@ -110,7 +110,42 @@ public class UtilityCalculation {
         return rtwu;
     }
 
+    public static void calculateRSUForAllItems(List<Transaction> transactions, List<Integer> secondary, UtilityArray utilityArray) {
+        for (Integer item : secondary) {
+            int totalRSU = 0;
+            System.out.println("\nCalculating RSU for item: " + item);
 
+            for (Transaction transaction : transactions) {
+                if (transaction.getItems().contains(item)) {
+                    int index = transaction.getItems().indexOf(item);
+                    int itemUtility = transaction.getUtilities().get(index);
+
+                    int remainingUtility = calculateRemainingUtility(transaction, index + 1); // Start from the next index
+
+                    totalRSU += itemUtility + remainingUtility;
+
+                    System.out.println("  Found item " + item + " in transaction"+ transaction.items + "with utility: " + itemUtility + ", Remaining Residual Utility: " + remainingUtility);
+                }
+            }
+
+            utilityArray.setRSU(item, totalRSU);
+            System.out.println("Calculated total RSU for item " + item + ": " + totalRSU);
+        }
+    }
+
+    private static int calculateRemainingUtility(Transaction transaction, int startIndex) {
+        int remainingUtility = 0;
+        List<Integer> items = transaction.getItems();
+        List<Integer> utilities = transaction.getUtilities();
+
+        for (int i = startIndex; i < items.size(); i++) {
+            if (utilities.get(i) > 0) {
+                remainingUtility += utilities.get(i);
+            }
+        }
+
+        return remainingUtility;
+    }
 
 
 
