@@ -2,6 +2,9 @@ import java.util.*;
 import java.io.*;
 public class EMHUN {
     private List<Transaction> transactions;
+    private List<Integer> X = new ArrayList<>();
+
+    private List<Transaction> highUtilityItemsets = new ArrayList<>();
     private int minU;
     private Set<Integer> rho = new HashSet<>();
     private Set<Integer> delta = new HashSet<>();
@@ -9,7 +12,6 @@ public class EMHUN {
     private Set<Integer> secondaryItems = new HashSet<>();
     private List<Integer> sortedSecondary = new ArrayList<>();
     private List<Integer> sortedEta;
-    private List<Integer> X = new ArrayList<>();
     public  UtilityArray utilityArray;
     private List<Integer> primaryItems = new ArrayList<>();
     private SearchAlgorithms searchAlgorithms = new SearchAlgorithms(utilityArray);;
@@ -67,7 +69,9 @@ public class EMHUN {
         System.out.println("\n---------------------------------");
         System.out.println("\nStarting HUI Search...");
         searchAlgorithms.search(sortedEta, new HashSet<>(X), transactions, primaryItems, sortedSecondary, minU);
-        utilityArray.printUtilityArray();
+        System.out.println("\nHUIs .......");
+
+        printHighUtilityItemsets();
     }
     public void classifyItems(List<Transaction> database) {
         Map<Integer, Boolean> hasPositive = new HashMap<>();
@@ -256,7 +260,13 @@ public class EMHUN {
         }
         System.out.println("Primary(X): " + primaryItems);
     }
-
+    private void printHighUtilityItemsets() {
+        List<HighUtilityItemset> huiList = searchAlgorithms.getHighUtilityItemsets();
+        System.out.println("\nHigh Utility Itemsets found:");
+        for (HighUtilityItemset hui : huiList) {
+            System.out.println("Itemset: " + hui.getItemset() + ", Utility: " + hui.getUtility());
+        }
+    }
 
 
 }
